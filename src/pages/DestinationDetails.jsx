@@ -2,128 +2,213 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import {
-  getDestinationById,
-} from "../services/api";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
 
 function DestinationDetails() {
-  const { destinationId } = useParams();
+  const { stateId, destinationId } = useParams();
 
   const [destination, setDestination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchDestination() {
+    const loadDestination = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const data = await getDestinationById(destinationId);
+        if (!destinationId) {
+          throw new Error("Destination ID is missing.");
+        }
 
-        setDestination(data);
+        const response = await fetch(
+          `${API_URL}/api/destinations/${destinationId}`
+        );
+
+        const result = await response.json();
+
+        console.log(
+          "Destination API response:",
+          result
+        );
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message ||
+              "Destination not found."
+          );
+        }
+
+        setDestination(result.data);
+
       } catch (err) {
-        console.error("Destination fetch error:", err);
-        setError("Failed to load destination.");
+        console.error(
+          "Destination details error:",
+          err
+        );
+
+        setError(
+          err.message ||
+            "Unable to load destination."
+        );
+
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    if (destinationId) {
-      fetchDestination();
-    }
+    loadDestination();
   }, [destinationId]);
 
-  // =====================================================
+
+  // ======================================================
   // LOADING
-  // =====================================================
+  // ======================================================
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
+      <main className="min-h-screen bg-slate-50 px-5 py-12">
 
-          <p className="mt-4 text-gray-600">
+        <div className="mx-auto max-w-6xl text-center">
+
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-orange-500" />
+
+          <p className="mt-4 font-semibold text-slate-500">
             Loading destination...
           </p>
+
         </div>
+
       </main>
     );
   }
 
-  // =====================================================
+
+  // ======================================================
   // ERROR
-  // =====================================================
+  // ======================================================
 
   if (error || !destination) {
     return (
-      <main className="min-h-screen bg-gray-50 px-6 py-20">
-        <div className="mx-auto max-w-3xl text-center">
+      <main className="min-h-screen bg-slate-50 px-5 py-12">
 
-          <h1 className="text-4xl font-bold text-gray-900">
-            Destination Not Found
-          </h1>
-
-          <p className="mt-4 text-gray-600">
-            Sorry, we couldn't find this destination.
-          </p>
+        <div className="mx-auto max-w-3xl">
 
           <Link
-            to="/destinations"
-            className="mt-6 inline-block rounded-lg bg-orange-500 px-6 py-3 font-semibold text-white transition hover:bg-orange-600"
+            to={
+              stateId
+                ? `/states/${stateId}`
+                : "/destinations"
+            }
+            className="font-bold text-orange-600"
           >
-            ← Back to Destinations
+            ← Back
           </Link>
 
+          <div className="mt-8 rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
+
+            <div className="text-5xl">
+              ⚠️
+            </div>
+
+            <h1 className="mt-4 text-2xl font-black text-slate-900">
+              Destination Not Found
+            </h1>
+
+            <p className="mt-3 text-slate-500">
+              {error ||
+                "We could not find this destination."}
+            </p>
+
+            <p className="mt-4 break-all rounded-lg bg-slate-100 p-3 text-xs text-slate-500">
+              Destination ID: {destinationId}
+            </p>
+
+            <Link
+              to="/destinations"
+              className="mt-6 inline-block rounded-xl bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600"
+            >
+              Explore Destinations
+            </Link>
+
+          </div>
+
         </div>
+
       </main>
     );
   }
 
-  // =====================================================
-  // DESTINATION PAGE
-  // =====================================================
+
+  // ======================================================
+  // DATA
+  // ======================================================
+
+  const gallery = Array.isArray(
+    destination.gallery
+  )
+    ? destination.gallery
+    : [];
+
+  const nearbyAttractions = Array.isArray(
+    destination.nearbyAttractions
+  )
+    ? destination.nearbyAttractions
+    : [];
+
+
+  // ======================================================
+  // PAGE
+  // ======================================================
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-slate-50">
 
-      {/* =================================================
-          HERO IMAGE
-      ================================================= */}
+      {/* HERO */}
 
-      <section className="relative h-[60vh] min-h-[450px] overflow-hidden">
+      <section className="relative">
 
-        <img
-          src={destination.image}
-          alt={destination.name}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        {destination.image ? (
+          <img
+            src={destination.image}
+            alt={destination.name}
+            className="h-[420px] w-full object-cover"
+            onError={(event) => {
+              event.currentTarget.style.display =
+                "none";
+            }}
+          />
+        ) : (
+          <div className="flex h-[420px] items-center justify-center bg-slate-300">
+            <span className="text-lg font-bold text-slate-600">
+              No image available
+            </span>
+          </div>
+        )}
 
-        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/35" />
 
-        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 flex items-end">
 
-        {/* Hero Content */}
+          <div className="mx-auto w-full max-w-6xl px-5 pb-10 sm:px-8">
 
-        <div className="relative z-10 flex h-full items-end px-6 pb-16">
-
-          <div className="mx-auto w-full max-w-7xl text-white">
-
-            <p className="mb-3 font-semibold uppercase tracking-widest text-orange-400">
-              {destination.stateName}
+            <p className="text-sm font-black uppercase tracking-widest text-orange-300">
+              {destination.category ||
+                "Destination"}
             </p>
 
-            <h1 className="text-5xl font-bold md:text-7xl">
+            <h1 className="mt-2 text-4xl font-black text-white sm:text-5xl">
               {destination.name}
             </h1>
 
-            {destination.category && (
-              <span className="mt-5 inline-block rounded-full bg-orange-500 px-4 py-2 text-sm font-bold">
-                {destination.category}
-              </span>
-            )}
+            <p className="mt-2 text-white/90">
+              📍{" "}
+              {destination.location ||
+                destination.stateName ||
+                "India"}
+            </p>
 
           </div>
 
@@ -132,177 +217,163 @@ function DestinationDetails() {
       </section>
 
 
-      {/* =================================================
-          CONTENT
-      ================================================= */}
+      {/* CONTENT */}
 
-      <section className="px-6 py-16">
+      <section className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
 
-        <div className="mx-auto max-w-7xl">
-
-          {/* Back */}
-
-          <Link
-            to={`/states/${destination.stateId}`}
-            className="font-semibold text-orange-500 transition hover:text-orange-600"
-          >
-            ← Back to {destination.stateName}
-          </Link>
+        <Link
+          to={
+            stateId
+              ? `/states/${stateId}`
+              : "/destinations"
+          }
+          className="font-bold text-orange-600 hover:text-orange-700"
+        >
+          ← Back to {destination.stateName || "Destinations"}
+        </Link>
 
 
-          {/* =================================================
-              DESCRIPTION
-          ================================================= */}
+        <div className="mt-8 grid gap-8 lg:grid-cols-3">
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-3">
+          {/* ABOUT */}
 
-            <div className="lg:col-span-2 rounded-2xl bg-white p-8 shadow-md md:p-10">
+          <div className="rounded-3xl bg-white p-7 shadow-sm lg:col-span-2">
 
-              <h2 className="text-3xl font-bold text-gray-900">
-                About {destination.name}
-              </h2>
+            <h2 className="text-2xl font-black text-slate-900">
+              About
+            </h2>
 
-              <p className="mt-5 text-lg leading-8 text-gray-600">
-                {destination.description}
-              </p>
+            <p className="mt-5 whitespace-pre-line leading-8 text-slate-600">
+              {destination.description}
+            </p>
 
-            </div>
+          </div>
 
 
-            {/* =================================================
-                QUICK INFORMATION
-            ================================================= */}
+          {/* QUICK INFORMATION */}
 
-            <div className="rounded-2xl bg-white p-8 shadow-md">
+          <div className="rounded-3xl bg-white p-7 shadow-sm">
 
-              <h2 className="text-2xl font-bold text-gray-900">
-                Quick Information
-              </h2>
+            <h2 className="text-2xl font-black text-slate-900">
+              Quick Information
+            </h2>
 
-              <div className="mt-6 space-y-5">
+            <div className="mt-6 space-y-5">
 
-                {destination.location && (
-                  <div>
-                    <p className="text-sm font-semibold text-orange-500">
-                      Location
-                    </p>
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  State
+                </p>
 
-                    <p className="mt-1 text-gray-700">
-                      {destination.location}
-                    </p>
-                  </div>
-                )}
+                <p className="mt-1 font-bold text-slate-800">
+                  {destination.stateName ||
+                    "Not available"}
+                </p>
+              </div>
 
 
-                {destination.bestTimeToVisit && (
-                  <div>
-                    <p className="text-sm font-semibold text-orange-500">
-                      Best Time to Visit
-                    </p>
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  Category
+                </p>
 
-                    <p className="mt-1 text-gray-700">
-                      {destination.bestTimeToVisit}
-                    </p>
-                  </div>
-                )}
+                <p className="mt-1 font-bold text-slate-800">
+                  {destination.category ||
+                    "Not available"}
+                </p>
+              </div>
 
 
-                {destination.entryFeesAndTimings && (
-                  <div>
-                    <p className="text-sm font-semibold text-orange-500">
-                      Entry Fees & Timings
-                    </p>
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  Best Time
+                </p>
 
-                    <p className="mt-1 text-gray-700">
-                      {destination.entryFeesAndTimings}
-                    </p>
-                  </div>
-                )}
+                <p className="mt-1 font-bold text-slate-800">
+                  {destination.bestTimeToVisit ||
+                    "Not available"}
+                </p>
+              </div>
 
+
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  Entry Fees & Timings
+                </p>
+
+                <p className="mt-1 font-bold text-slate-800">
+                  {destination.entryFeesAndTimings ||
+                    "Not available"}
+                </p>
               </div>
 
             </div>
 
           </div>
 
-
-          {/* =================================================
-              GALLERY
-          ================================================= */}
-
-          {destination.gallery &&
-            destination.gallery.length > 0 && (
-
-              <section className="mt-12">
-
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Gallery
-                </h2>
-
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-
-                  {destination.gallery.map(
-                    (image, index) => (
-
-                      <div
-                        key={`${image}-${index}`}
-                        className="group h-64 overflow-hidden rounded-2xl shadow-md"
-                      >
-
-                        <img
-                          src={image}
-                          alt={`${destination.name} ${index + 1}`}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                          loading="lazy"
-                        />
-
-                      </div>
-
-                    )
-                  )}
-
-                </div>
-
-              </section>
-
-            )}
-
-
-          {/* =================================================
-              NEARBY ATTRACTIONS
-          ================================================= */}
-
-          {destination.nearbyAttractions &&
-            destination.nearbyAttractions.length > 0 && (
-
-              <section className="mt-16">
-
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Nearby Attractions
-                </h2>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-
-                  {destination.nearbyAttractions.map(
-                    (attraction) => (
-
-                      <span
-                        key={attraction}
-                        className="rounded-full bg-orange-100 px-5 py-2 font-semibold text-orange-700"
-                      >
-                        {attraction}
-                      </span>
-
-                    )
-                  )}
-
-                </div>
-
-              </section>
-
-            )}
-
         </div>
+
+
+        {/* GALLERY */}
+
+        {gallery.length > 0 && (
+          <section className="mt-10">
+
+            <h2 className="text-2xl font-black text-slate-900">
+              Gallery
+            </h2>
+
+            <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+              {gallery.map((image, index) => (
+
+                <img
+                  key={`${image}-${index}`}
+                  src={image}
+                  alt={`${destination.name} ${index + 1}`}
+                  className="h-60 w-full rounded-2xl object-cover shadow-sm"
+                  onError={(event) => {
+                    event.currentTarget.style.display =
+                      "none";
+                  }}
+                />
+
+              ))}
+
+            </div>
+
+          </section>
+        )}
+
+
+        {/* NEARBY */}
+
+        {nearbyAttractions.length > 0 && (
+          <section className="mt-10 rounded-3xl bg-white p-7 shadow-sm">
+
+            <h2 className="text-2xl font-black text-slate-900">
+              Nearby Attractions
+            </h2>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+
+              {nearbyAttractions.map(
+                (attraction, index) => (
+
+                  <div
+                    key={`${attraction}-${index}`}
+                    className="rounded-xl bg-slate-50 px-4 py-3 font-semibold text-slate-700"
+                  >
+                    📍 {attraction}
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+          </section>
+        )}
 
       </section>
 
