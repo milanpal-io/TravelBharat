@@ -11,17 +11,59 @@ dotenv.config();
 
 const app = express();
 
+
 // ======================================================
-// MIDDLEWARE
+// CORS CONFIGURATION
 // ======================================================
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://travelbharat-e36x.onrender.com",
+];
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Allow requests without an origin
+      // Example: Postman, server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error("Not allowed by CORS")
+      );
+    },
+
+    credentials: true,
+
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS",
+    ],
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
   })
 );
 
+
+// ======================================================
+// BODY PARSER
+// ======================================================
+
 app.use(express.json());
+
 
 // ======================================================
 // ROOT ROUTE
@@ -34,6 +76,7 @@ app.get("/", (req, res) => {
   });
 });
 
+
 // ======================================================
 // DESTINATION ROUTES
 // ======================================================
@@ -42,6 +85,7 @@ app.use(
   "/api/destinations",
   destinationRoutes
 );
+
 
 // ======================================================
 // STATE ROUTES
@@ -52,6 +96,7 @@ app.use(
   stateRoutes
 );
 
+
 // ======================================================
 // ADMIN ROUTES
 // ======================================================
@@ -60,6 +105,7 @@ app.use(
   "/api/admin",
   adminRoutes
 );
+
 
 // ======================================================
 // MONGODB CONNECTION
@@ -76,7 +122,7 @@ mongoose
 
     app.listen(PORT, () => {
       console.log(
-        `TravelBharat backend running on http://localhost:${PORT}`
+        `TravelBharat backend running on port ${PORT}`
       );
     });
   })
