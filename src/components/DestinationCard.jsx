@@ -1,129 +1,131 @@
+
 import { Link } from "react-router-dom";
-import ImageWithFallback from "./ImageWithFallback";
 
-function DestinationCard({ place, stateName, stateId }) {
+function DestinationCard({
+  place,
+  stateName,
+  stateId,
+}) {
+  if (!place) {
+    return null;
+  }
 
-  // =====================================================
-  // DESTINATION URL
-  // =====================================================
-  // Use MongoDB _id instead of destination name.
-  // This allows DestinationDetails.jsx to fetch the
-  // exact destination from MongoDB.
-  //
-  // Falls back to place.id in case the backend's toJSON
-  // transform renames _id to id (common with Mongoose
-  // virtuals). Without this fallback, place._id can be
-  // undefined and gets silently stringified into the URL
-  // as the literal text "undefined".
-  // =====================================================
+  const destinationName =
+    place.name || "Unknown Destination";
 
-  const destinationRefId = place._id || place.id;
+  const destinationId =
+    place._id ||
+    place.id ||
+    place.destinationId;
 
-  const destinationUrl = destinationRefId
-    ? `/states/${stateId}/${destinationRefId}`
-    : null;
+  const finalStateId =
+    place.stateId ||
+    stateId ||
+    "";
+
+  const image =
+    place.image ||
+    place.imageUrl ||
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80";
+
+  const category =
+    place.category || "Travel";
+
+  const description =
+    place.description ||
+    "Discover this beautiful destination in India.";
+
+  /*
+   * MongoDB destinations use:
+   *
+   * /states/:stateId/:destinationId
+   *
+   * Static destinations may have their own id.
+   */
+
+  const destinationLink =
+    destinationId && finalStateId
+      ? `/states/${finalStateId}/${destinationId}`
+      : `/destinations`;
 
   return (
-    <article className="group overflow-hidden rounded-2xl bg-white shadow-md transition duration-300 hover:-translate-y-2 hover:shadow-xl">
+    <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
 
-      {/* =================================================
-          DESTINATION IMAGE
-      ================================================= */}
+      {/* ==================================================
+          IMAGE
+      ================================================== */}
 
-      <div className="relative h-56 overflow-hidden">
+      <Link to={destinationLink}>
 
-        {destinationUrl ? (
-          <Link
-            to={destinationUrl}
-            className="block h-full w-full"
-            aria-label={`View details for ${place.name}`}
-          >
+        <div className="relative h-56 overflow-hidden bg-slate-200">
 
-            <ImageWithFallback
-              src={place.image}
-              alt={place.name}
-              loading="lazy"
-              className="h-full w-full cursor-pointer object-cover transition duration-500 group-hover:scale-110"
-            />
-
-          </Link>
-        ) : (
-          <ImageWithFallback
-            src={place.image}
-            alt={place.name}
-            loading="lazy"
-            className="h-full w-full object-cover"
+          <img
+            src={image}
+            alt={destinationName}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            onError={(event) => {
+              event.currentTarget.src =
+                "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80";
+            }}
           />
-        )}
 
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-        {/* =================================================
-            CATEGORY BADGE
-        ================================================= */}
-
-        {place.category && (
-          <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-orange-600 shadow">
-            {place.category}
+          <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-black text-orange-600 backdrop-blur">
+            {category}
           </span>
-        )}
 
-      </div>
+        </div>
+
+      </Link>
 
 
-      {/* =================================================
-          CARD CONTENT
-      ================================================= */}
+      {/* ==================================================
+          CONTENT
+      ================================================== */}
 
       <div className="p-5">
 
-        {/* State */}
+        <p className="text-xs font-bold uppercase tracking-wider text-orange-500">
+          {stateName ||
+            place.stateName ||
+            "India"}
+        </p>
 
-        <p className="text-sm font-semibold text-orange-500">
-          {stateName}
+        <Link to={destinationLink}>
+
+          <h2 className="mt-2 text-xl font-black text-slate-900 transition hover:text-orange-600">
+            {destinationName}
+          </h2>
+
+        </Link>
+
+        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-500">
+          {description}
         </p>
 
 
-        {/* Destination Name */}
+        {/* ==================================================
+            DETAILS
+        ================================================== */}
 
-        <h3 className="mt-1 text-xl font-bold text-gray-900">
-          {place.name}
-        </h3>
+        <div className="mt-5 flex items-center justify-between">
 
-
-        {/* Category */}
-
-        {place.category && (
-          <span className="mt-3 inline-block rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-600">
-            {place.category}
+          <span className="text-sm font-bold text-slate-400">
+            📍{" "}
+            {place.location ||
+              stateName ||
+              "India"}
           </span>
-        )}
 
-
-        {/* Description */}
-
-        {place.description && (
-          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-gray-600">
-            {place.description}
-          </p>
-        )}
-
-
-        {/* =================================================
-            VIEW DETAILS BUTTON
-        ================================================= */}
-
-        {destinationUrl ? (
           <Link
-            to={destinationUrl}
-            className="mt-5 inline-flex items-center font-semibold text-orange-500 transition hover:translate-x-1 hover:text-orange-600"
+            to={destinationLink}
+            className="text-sm font-black text-orange-600 hover:text-orange-700"
           >
-            View Details →
+            Explore →
           </Link>
-        ) : (
-          <span className="mt-5 inline-flex items-center font-semibold text-gray-400">
-            Details unavailable
-          </span>
-        )}
+
+        </div>
 
       </div>
 

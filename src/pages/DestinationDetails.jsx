@@ -13,6 +13,10 @@ function DestinationDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // ======================================================
+  // LOAD DESTINATION
+  // ======================================================
+
   useEffect(() => {
     const loadDestination = async () => {
       try {
@@ -42,7 +46,6 @@ function DestinationDetails() {
         }
 
         setDestination(result.data);
-
       } catch (err) {
         console.error(
           "Destination details error:",
@@ -53,7 +56,6 @@ function DestinationDetails() {
           err.message ||
             "Unable to load destination."
         );
-
       } finally {
         setLoading(false);
       }
@@ -102,10 +104,11 @@ function DestinationDetails() {
                 ? `/states/${stateId}`
                 : "/destinations"
             }
-            className="font-bold text-orange-600"
+            className="font-bold text-orange-600 hover:text-orange-700"
           >
             ← Back
           </Link>
+
 
           <div className="mt-8 rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
 
@@ -128,7 +131,7 @@ function DestinationDetails() {
 
             <Link
               to="/destinations"
-              className="mt-6 inline-block rounded-xl bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600"
+              className="mt-6 inline-block rounded-xl bg-orange-500 px-6 py-3 font-bold text-white transition hover:bg-orange-600"
             >
               Explore Destinations
             </Link>
@@ -152,11 +155,41 @@ function DestinationDetails() {
     ? destination.gallery
     : [];
 
-  const nearbyAttractions = Array.isArray(
-    destination.nearbyAttractions
-  )
-    ? destination.nearbyAttractions
-    : [];
+  const nearbyAttractions =
+    Array.isArray(
+      destination.nearbyAttractions
+    )
+      ? destination.nearbyAttractions
+      : [];
+
+
+  // ======================================================
+  // FALLBACK DATA
+  // ======================================================
+
+  const stateName =
+    destination.stateName?.trim() ||
+    destination.state?.trim() ||
+    "Not available";
+
+  const category =
+    destination.category?.trim() ||
+    "Not available";
+
+  const bestTime =
+    destination.bestTimeToVisit?.trim() ||
+    destination.bestTime?.trim() ||
+    "Not available";
+
+  const entryFeesAndTimings =
+    destination.entryFeesAndTimings?.trim() ||
+    destination.timing?.trim() ||
+    "Not available";
+
+  const location =
+    destination.location?.trim() ||
+    stateName ||
+    "India";
 
 
   // ======================================================
@@ -166,37 +199,51 @@ function DestinationDetails() {
   return (
     <main className="min-h-screen bg-slate-50">
 
-      {/* HERO */}
+
+      {/* ==================================================
+          HERO
+      ================================================== */}
 
       <section className="relative">
 
         {destination.image ? (
+
           <img
             src={destination.image}
-            alt={destination.name}
+            alt={destination.name || "Destination"}
             className="h-[420px] w-full object-cover"
             onError={(event) => {
               event.currentTarget.style.display =
                 "none";
             }}
           />
+
         ) : (
+
           <div className="flex h-[420px] items-center justify-center bg-slate-300">
+
             <span className="text-lg font-bold text-slate-600">
               No image available
             </span>
+
           </div>
+
         )}
 
+
+        {/* HERO OVERLAY */}
+
         <div className="absolute inset-0 bg-black/35" />
+
+
+        {/* HERO CONTENT */}
 
         <div className="absolute inset-0 flex items-end">
 
           <div className="mx-auto w-full max-w-6xl px-5 pb-10 sm:px-8">
 
             <p className="text-sm font-black uppercase tracking-widest text-orange-300">
-              {destination.category ||
-                "Destination"}
+              {category}
             </p>
 
             <h1 className="mt-2 text-4xl font-black text-white sm:text-5xl">
@@ -204,10 +251,7 @@ function DestinationDetails() {
             </h1>
 
             <p className="mt-2 text-white/90">
-              📍{" "}
-              {destination.location ||
-                destination.stateName ||
-                "India"}
+              📍 {location}
             </p>
 
           </div>
@@ -217,9 +261,14 @@ function DestinationDetails() {
       </section>
 
 
-      {/* CONTENT */}
+      {/* ==================================================
+          CONTENT
+      ================================================== */}
 
       <section className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+
+
+        {/* BACK BUTTON */}
 
         <Link
           to={
@@ -227,7 +276,7 @@ function DestinationDetails() {
               ? `/states/${stateId}`
               : "/destinations"
           }
-          className="font-bold text-orange-600 hover:text-orange-700"
+          className="font-bold text-orange-600 transition hover:text-orange-700"
         >
           ← Back to {destination.stateName || "Destinations"}
         </Link>
@@ -235,76 +284,96 @@ function DestinationDetails() {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
 
-          {/* ABOUT */}
 
-          <div className="rounded-3xl bg-white p-7 shadow-sm lg:col-span-2">
+          {/* ==================================================
+              ABOUT
+          ================================================== */}
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm lg:col-span-2">
 
             <h2 className="text-2xl font-black text-slate-900">
               About
             </h2>
 
             <p className="mt-5 whitespace-pre-line leading-8 text-slate-600">
-              {destination.description}
+              {destination.description ||
+                "No description available."}
             </p>
 
           </div>
 
 
-          {/* QUICK INFORMATION */}
+          {/* ==================================================
+              QUICK INFORMATION
+          ================================================== */}
 
-          <div className="rounded-3xl bg-white p-7 shadow-sm">
+          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
 
             <h2 className="text-2xl font-black text-slate-900">
               Quick Information
             </h2>
 
-            <div className="mt-6 space-y-5">
 
-              <div>
+            <div className="mt-6 divide-y divide-slate-100">
+
+
+              {/* STATE */}
+
+              <div className="py-4 first:pt-0">
+
                 <p className="text-xs font-black uppercase tracking-wider text-slate-400">
                   State
                 </p>
 
-                <p className="mt-1 font-bold text-slate-800">
-                  {destination.stateName ||
-                    "Not available"}
+                <p className="mt-1 text-base font-bold leading-6 text-slate-900">
+                  {stateName}
                 </p>
+
               </div>
 
 
-              <div>
+              {/* CATEGORY */}
+
+              <div className="py-4">
+
                 <p className="text-xs font-black uppercase tracking-wider text-slate-400">
                   Category
                 </p>
 
-                <p className="mt-1 font-bold text-slate-800">
-                  {destination.category ||
-                    "Not available"}
+                <p className="mt-1 text-base font-bold leading-6 text-slate-900">
+                  {category}
                 </p>
+
               </div>
 
 
-              <div>
+              {/* BEST TIME */}
+
+              <div className="py-4">
+
                 <p className="text-xs font-black uppercase tracking-wider text-slate-400">
                   Best Time
                 </p>
 
-                <p className="mt-1 font-bold text-slate-800">
-                  {destination.bestTimeToVisit ||
-                    "Not available"}
+                <p className="mt-1 text-base font-bold leading-6 text-slate-900">
+                  {bestTime}
                 </p>
+
               </div>
 
 
-              <div>
+              {/* ENTRY FEES & TIMINGS */}
+
+              <div className="py-4 last:pb-0">
+
                 <p className="text-xs font-black uppercase tracking-wider text-slate-400">
                   Entry Fees & Timings
                 </p>
 
-                <p className="mt-1 font-bold text-slate-800">
-                  {destination.entryFeesAndTimings ||
-                    "Not available"}
+                <p className="mt-1 text-base font-bold leading-6 text-slate-900">
+                  {entryFeesAndTimings}
                 </p>
+
               </div>
 
             </div>
@@ -314,9 +383,12 @@ function DestinationDetails() {
         </div>
 
 
-        {/* GALLERY */}
+        {/* ==================================================
+            GALLERY
+        ================================================== */}
 
         {gallery.length > 0 && (
+
           <section className="mt-10">
 
             <h2 className="text-2xl font-black text-slate-900">
@@ -325,31 +397,39 @@ function DestinationDetails() {
 
             <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
-              {gallery.map((image, index) => (
+              {gallery.map(
+                (image, index) => (
 
-                <img
-                  key={`${image}-${index}`}
-                  src={image}
-                  alt={`${destination.name} ${index + 1}`}
-                  className="h-60 w-full rounded-2xl object-cover shadow-sm"
-                  onError={(event) => {
-                    event.currentTarget.style.display =
-                      "none";
-                  }}
-                />
+                  <img
+                    key={`${image}-${index}`}
+                    src={image}
+                    alt={`${destination.name} ${
+                      index + 1
+                    }`}
+                    className="h-60 w-full rounded-2xl object-cover shadow-sm"
+                    onError={(event) => {
+                      event.currentTarget.style.display =
+                        "none";
+                    }}
+                  />
 
-              ))}
+                )
+              )}
 
             </div>
 
           </section>
+
         )}
 
 
-        {/* NEARBY */}
+        {/* ==================================================
+            NEARBY ATTRACTIONS
+        ================================================== */}
 
         {nearbyAttractions.length > 0 && (
-          <section className="mt-10 rounded-3xl bg-white p-7 shadow-sm">
+
+          <section className="mt-10 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
 
             <h2 className="text-2xl font-black text-slate-900">
               Nearby Attractions
@@ -373,6 +453,7 @@ function DestinationDetails() {
             </div>
 
           </section>
+
         )}
 
       </section>
