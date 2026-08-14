@@ -2,9 +2,11 @@
 // TravelBharat API Service
 // ======================================================
 
+// Production backend URL
+// VITE_API_URL should be set in Render environment variables.
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000";
+  "https://travelbharat-api-yg5r.onrender.com";
 
 
 // ======================================================
@@ -16,42 +18,56 @@ async function request(endpoint, options = {}) {
 
   console.log("API Request:", url);
 
-  const response = await fetch(url, {
-    ...options,
-
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
-
-  let result;
-
   try {
-    result = await response.json();
-  } catch {
-    throw new Error(
-      `Server returned invalid response (${response.status}).`
-    );
+    const response = await fetch(url, {
+      ...options,
+
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+
+    let result;
+
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(
+        `Server returned invalid response (${response.status}).`
+      );
+    }
+
+    console.log("API Response:", result);
+
+    if (!response.ok) {
+      throw new Error(
+        result?.message ||
+          `Request failed with status ${response.status}.`
+      );
+    }
+
+    if (result?.success === false) {
+      throw new Error(
+        result.message ||
+          "API request failed."
+      );
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error("API Error:", error);
+
+    // Better error message for network/CORS problems
+    if (error instanceof TypeError) {
+      throw new Error(
+        "Failed to fetch API. Please check the backend URL, CORS configuration, and Render deployment."
+      );
+    }
+
+    throw error;
   }
-
-  console.log("API Response:", result);
-
-  if (!response.ok) {
-    throw new Error(
-      result?.message ||
-        `Request failed with status ${response.status}.`
-    );
-  }
-
-  if (result?.success === false) {
-    throw new Error(
-      result.message ||
-        "API request failed."
-    );
-  }
-
-  return result;
 }
 
 
@@ -142,6 +158,7 @@ export async function createDestination(
     "/api/destinations",
     {
       method: "POST",
+
       body: JSON.stringify(data),
     }
   );
@@ -168,6 +185,7 @@ export async function updateDestination(
     `/api/destinations/${encodeURIComponent(id)}`,
     {
       method: "PUT",
+
       body: JSON.stringify(data),
     }
   );
