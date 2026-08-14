@@ -2,129 +2,228 @@
 // TravelBharat API Service
 // ======================================================
 
-const API_BASE_URL = (
+const API_URL =
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
-).replace(/\/$/, "");
+  "http://localhost:5000";
+
 
 // ======================================================
-// Generic API Request
+// HELPER
 // ======================================================
 
-const apiRequest = async (endpoint, options = {}) => {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+async function request(endpoint, options = {}) {
+  const url = `${API_URL}${endpoint}`;
+
+  console.log("API Request:", url);
+
+  const response = await fetch(url, {
     ...options,
+
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
   });
 
-  let result = {};
+  let result;
 
   try {
     result = await response.json();
   } catch {
-    throw new Error("Server returned an invalid response.");
+    throw new Error(
+      `Server returned invalid response (${response.status}).`
+    );
   }
 
-  if (!response.ok || result.success === false) {
+  console.log("API Response:", result);
+
+  if (!response.ok) {
+    throw new Error(
+      result?.message ||
+        `Request failed with status ${response.status}.`
+    );
+  }
+
+  if (result?.success === false) {
     throw new Error(
       result.message ||
-        `Request failed with status ${response.status}`
+        "API request failed."
     );
   }
 
   return result;
-};
+}
 
-// ======================================================
-// GET ALL STATES
-// ======================================================
-
-export const getStates = async () => {
-  return apiRequest("/api/states");
-};
 
 // ======================================================
 // GET ALL DESTINATIONS
 // ======================================================
 
-export const getDestinations = async () => {
-  return apiRequest("/api/destinations");
-};
+export async function getDestinations() {
+  const result = await request(
+    "/api/destinations"
+  );
+
+  return Array.isArray(result)
+    ? result
+    : result?.data || [];
+}
+
+
+// ======================================================
+// GET ALL STATES
+// ======================================================
+
+export async function getStates() {
+  const result = await request(
+    "/api/states"
+  );
+
+  return Array.isArray(result)
+    ? result
+    : result?.data || [];
+}
+
+
+// ======================================================
+// GET DESTINATIONS BY STATE
+// ======================================================
+
+export async function getDestinationsByState(
+  stateId
+) {
+  if (!stateId) {
+    throw new Error(
+      "State ID is required."
+    );
+  }
+
+  const result = await request(
+    `/api/destinations/state/${encodeURIComponent(
+      stateId
+    )}`
+  );
+
+  return Array.isArray(result)
+    ? result
+    : result?.data || [];
+}
+
 
 // ======================================================
 // GET SINGLE DESTINATION
 // ======================================================
 
-export const getDestination = async (id) => {
+export async function getDestinationById(
+  id
+) {
   if (!id) {
-    throw new Error("Destination ID is required.");
+    throw new Error(
+      "Destination ID is required."
+    );
   }
 
-  return apiRequest(
+  const result = await request(
     `/api/destinations/${encodeURIComponent(id)}`
   );
-};
 
-// ======================================================
-// GET SINGLE DESTINATION BY ID
-// ======================================================
+  return result?.data || result;
+}
 
-export const getDestinationById = getDestination;
 
 // ======================================================
 // CREATE DESTINATION
 // ======================================================
 
-export const createDestination = async (destination) => {
-  return apiRequest("/api/destinations", {
-    method: "POST",
-    body: JSON.stringify(destination),
-  });
-};
+export async function createDestination(
+  data
+) {
+  const result = await request(
+    "/api/destinations",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+
+  return result?.data || result;
+}
+
 
 // ======================================================
 // UPDATE DESTINATION
 // ======================================================
 
-export const updateDestination = async (
+export async function updateDestination(
   id,
-  destination
-) => {
+  data
+) {
   if (!id) {
-    throw new Error("Destination ID is required.");
+    throw new Error(
+      "Destination ID is required."
+    );
   }
 
-  return apiRequest(
+  const result = await request(
     `/api/destinations/${encodeURIComponent(id)}`,
     {
       method: "PUT",
-      body: JSON.stringify(destination),
+      body: JSON.stringify(data),
     }
   );
-};
+
+  return result?.data || result;
+}
+
 
 // ======================================================
 // DELETE DESTINATION
 // ======================================================
 
-export const deleteDestination = async (id) => {
+export async function deleteDestination(
+  id
+) {
   if (!id) {
-    throw new Error("Destination ID is required.");
+    throw new Error(
+      "Destination ID is required."
+    );
   }
 
-  return apiRequest(
+  return request(
     `/api/destinations/${encodeURIComponent(id)}`,
     {
       method: "DELETE",
     }
   );
-};
+}
+
 
 // ======================================================
-// EXPORT BASE URL
+// ADMIN LOGIN
 // ======================================================
 
-export { API_BASE_URL };
+export async function adminLogin(
+  email,
+  password
+) {
+  const result = await request(
+    "/api/admin/login",
+    {
+      method: "POST",
+
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    }
+  );
+
+  return result;
+}
+
+
+// ======================================================
+// EXPORT API URL
+// ======================================================
+
+export { API_URL };

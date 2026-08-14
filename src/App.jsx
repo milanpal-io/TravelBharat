@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // ======================================================
 // PUBLIC COMPONENTS
@@ -7,16 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
-// ======================================================
-// ADMIN COMPONENTS
-// ======================================================
-
-import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
-import CreateDestination from "./pages/CreateDestination";
-import EditDestination from "./pages/EditDestination";
-import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
 // ======================================================
 // PUBLIC PAGES
@@ -32,43 +22,46 @@ import DestinationDetails from "./pages/DestinationDetails";
 import Search from "./pages/Search";
 import About from "./pages/About";
 
+// ======================================================
+// ADMIN PAGES
+// ======================================================
+
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import CreateDestination from "./pages/CreateDestination";
+import EditDestination from "./pages/EditDestination";
 
 // ======================================================
-// PUBLIC PAGE WRAPPER
+// ADMIN PROTECTION
 // ======================================================
 
-function PublicPage({ children }) {
-  return (
-    <>
-      <Navbar />
-      {children}
-      <Footer />
-    </>
-  );
-}
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
-
-// ======================================================
-// APP
-// ======================================================
 
 function App() {
   return (
     <BrowserRouter>
 
+      {/* ==================================================
+          PUBLIC NAVBAR
+      ================================================== */}
+
+      <Navbar />
+
+
+      {/* ==================================================
+          ROUTES
+      ================================================== */}
+
       <Routes>
 
         {/* ==================================================
-            PUBLIC HOME
+            HOME
         ================================================== */}
 
         <Route
           path="/"
-          element={
-            <PublicPage>
-              <Home />
-            </PublicPage>
-          }
+          element={<Home />}
         />
 
 
@@ -78,20 +71,12 @@ function App() {
 
         <Route
           path="/states"
-          element={
-            <PublicPage>
-              <States />
-            </PublicPage>
-          }
+          element={<States />}
         />
 
         <Route
           path="/states/:stateId"
-          element={
-            <PublicPage>
-              <StateDetails />
-            </PublicPage>
-          }
+          element={<StateDetails />}
         />
 
 
@@ -101,20 +86,12 @@ function App() {
 
         <Route
           path="/categories"
-          element={
-            <PublicPage>
-              <Categories />
-            </PublicPage>
-          }
+          element={<Categories />}
         />
 
         <Route
           path="/categories/:category"
-          element={
-            <PublicPage>
-              <CategoryDetails />
-            </PublicPage>
-          }
+          element={<CategoryDetails />}
         />
 
 
@@ -124,20 +101,12 @@ function App() {
 
         <Route
           path="/destinations"
-          element={
-            <PublicPage>
-              <Destinations />
-            </PublicPage>
-          }
+          element={<Destinations />}
         />
 
         <Route
           path="/states/:stateId/:destinationId"
-          element={
-            <PublicPage>
-              <DestinationDetails />
-            </PublicPage>
-          }
+          element={<DestinationDetails />}
         />
 
 
@@ -147,11 +116,7 @@ function App() {
 
         <Route
           path="/search"
-          element={
-            <PublicPage>
-              <Search />
-            </PublicPage>
-          }
+          element={<Search />}
         />
 
 
@@ -161,16 +126,13 @@ function App() {
 
         <Route
           path="/about"
-          element={
-            <PublicPage>
-              <About />
-            </PublicPage>
-          }
+          element={<About />}
         />
 
 
         {/* ==================================================
             ADMIN LOGIN
+            Publicly accessible, but linked from Home
         ================================================== */}
 
         <Route
@@ -181,6 +143,7 @@ function App() {
 
         {/* ==================================================
             ADMIN DASHBOARD
+            PROTECTED
         ================================================== */}
 
         <Route
@@ -195,6 +158,7 @@ function App() {
 
         {/* ==================================================
             CREATE DESTINATION
+            PROTECTED
         ================================================== */}
 
         <Route
@@ -209,6 +173,7 @@ function App() {
 
         {/* ==================================================
             EDIT DESTINATION
+            PROTECTED
         ================================================== */}
 
         <Route
@@ -222,20 +187,49 @@ function App() {
 
 
         {/* ==================================================
-            UNKNOWN ROUTE
+            404 PAGE
         ================================================== */}
 
         <Route
           path="*"
           element={
-            <Navigate
-              to="/"
-              replace
-            />
+            <main className="min-h-screen bg-slate-50 px-6 py-20">
+
+              <div className="mx-auto max-w-3xl text-center">
+
+                <div className="text-6xl">
+                  🧭
+                </div>
+
+                <h1 className="mt-5 text-4xl font-black text-slate-900">
+                  Page Not Found
+                </h1>
+
+                <p className="mt-3 text-slate-500">
+                  The page you are looking for does not exist.
+                </p>
+
+                <a
+                  href="/"
+                  className="mt-6 inline-block rounded-xl bg-orange-500 px-6 py-3 font-bold text-white transition hover:bg-orange-600"
+                >
+                  Back to Home
+                </a>
+
+              </div>
+
+            </main>
           }
         />
 
       </Routes>
+
+
+      {/* ==================================================
+          PUBLIC FOOTER
+      ================================================== */}
+
+      <Footer />
 
     </BrowserRouter>
   );
